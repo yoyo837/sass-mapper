@@ -1,7 +1,7 @@
 ## 安装
 
 ```shell
-npm i @no-repeat/sass-tracker -g
+npm i @no-repeat/sass-mapper -g
 ```
 
 ## 依赖
@@ -31,7 +31,7 @@ $ sass-demo
 在 Node 端, 可以调用 `generate` 函数来生成变量映射表:
 
 ```
-const generate = require('@no-repeat/sass-tracker')
+const generate = require('@no-repeat/sass-mapper')
 
 // 入口文件在文件系统中
 //
@@ -49,14 +49,14 @@ generate('index.scss', sources, '$var-prefix')
 
 ## 调试
 
-### 使用 `sass-tracker`
+### 使用 `sass-mapper`
 
 此命令能够完整输出所有的 CSS 规则与对应的变量之间的关系.
 
 用法:
 
 ```
-$ sass-tracker <sass-entry> <var-prefix>
+$ sass-mapper <sass-entry> <var-prefix>
 ```
 
 其中:
@@ -67,7 +67,7 @@ $ sass-tracker <sass-entry> <var-prefix>
 示例:
 
 ```
-$ sass-tracker ./lib/index.scss \$btn
+$ sass-mapper ./lib/index.scss \$btn
 ```
 
 ### 使用 `SASS_DEBUG`
@@ -77,7 +77,7 @@ $ sass-tracker ./lib/index.scss \$btn
 方法:
 
 ```
-$ SASS_DEBUG=true sass-tracker index.scss \$btn
+$ SASS_DEBUG=true sass-mapper index.scss \$btn
 ```
 
 或
