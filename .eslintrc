@@ -1,0 +1,10 @@
+{
+    "extends": "eslint-config-egg",
+    "rules": {
+        "space-before-function-paren": "off",
+        "no-unused-vars": "off",
+        "array-bracket-spacing": "off",
+        "valid-jsdoc": "off",
+        "no-cond-assign": "off"
+    }
+}

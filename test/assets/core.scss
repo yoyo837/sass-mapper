@@ -1,0 +1,2627 @@
+// Mixins & Functions
+
+/* start file "./util/_functions.scss" */
+////
+/// @group utils
+////
+
+// 去除数值单位的方法
+//
+// @param {String} $value
+//   带单位的数值
+//
+// @example scss - SCSS 用法
+//   $dimension: strip-units(10px);
+//
+// @example css - CSS 输出
+//   $dimension: 10;
+//
+// @return {Number}
+@function strip-units($value) {
+    @return $value / ($value * 0 + 1);
+}
+
+// 检查一个值是否为合法的CSS长度
+//
+// @param {String} $value
+// @return {Number}
+@function is-length($value) {
+    @return type-of($value) != "null" and (str-slice($value + "", 1, 4) == "calc" or type-of(index(auto inherit initial 0, $value)) == "number" or type-of($value) == "number" and not unitless($value));
+}
+
+// 将pixel单位转换为em单位
+//
+// @param {Number} $pxval
+//   pixel单位下的数值
+//
+// @param {Number} $base
+//   全局基础pixel单位下的字号
+//
+// @example scss - SCSS 用法
+//   .element {
+//     font-size: em(12, 14);
+//   }
+//
+// @example css - CSS 输出
+//   .element {
+//     font-size: 0.85714em;
+//   }
+// @require {function} strip-units
+// @require {variable} $font-size-base-body1
+//
+// @return {String}
+
+@function em($pxval, $base: $font-size-base-body1) {
+    @if not unitless($pxval) {
+        $pxval: strip-units($pxval);
+    }
+
+    @if not unitless($base) {
+        $base: strip-units($base);
+    }
+
+    @return $pxval / $base * 1em;
+}
+
+// 转化为四值属性的方法，该属性可以有 1 到 4 个值，如：margin, padding, position
+//
+// @param {List} $shorthand
+//
+// @example scss - SCSS 用法
+//   .element {
+//     margin: unpack(1em 2em);
+//     padding: unpack(1em 2em 2em);
+//   }
+//
+// @example css - CSS 输出
+//   .element {
+//     margin: 1em 2em 1em 2em;
+//     padding: 1em 2em 2em 2em;
+//   }
+//
+// @return {List}
+@function unpack($shorthand) {
+    @if length($shorthand) == 1 {
+        @return nth($shorthand, 1) nth($shorthand, 1) nth($shorthand, 1) nth($shorthand, 1);
+    }
+    @else if length($shorthand) == 2 {
+        @return nth($shorthand, 1) nth($shorthand, 2) nth($shorthand, 1) nth($shorthand, 2);
+    }
+    @else if length($shorthand) == 3 {
+        @return nth($shorthand, 1) nth($shorthand, 2) nth($shorthand, 3) nth($shorthand, 2);
+    }
+    @else {
+        @return $shorthand;
+    }
+}
+
+// 圆角生成器
+//
+// @access private
+//
+// @param {String} $side [$corner-sides-base] - 需要加圆角的面
+// @param {String} $radius [$corner-radius-base] - 圆角曲率
+//
+// @example scss - SCSS 用法
+//   .element {
+//     border-radius: corner-maker();
+//   }
+//
+// @example css - CSS 输出
+//   .element {
+//     border-radius: 3px 3px 3px 3px;
+//   }
+//
+// @return {List}
+
+@function corner-maker($side: $corner-sides-base, $radius: $corner-radius-base) {
+    $tl: $radius;
+    $tr: $radius;
+    $br: $radius;
+    $bl: $radius;
+
+    @if $side == top {
+        $br: 0;
+        $bl: 0;
+    }
+    @else if $side == right {
+        $tl: 0;
+        $bl: 0;
+    }
+    @else if $side == down {
+        $tr: 0;
+        $tl: 0;
+    }
+    @else if $side == left {
+        $tr: 0;
+        $br: 0;
+    }
+
+    @return #{$tl} #{$tr} #{$br} #{$bl};
+}
+
+// shadow 生成器
+//
+//
+// @param {String} $direction [$shadow-sides-base] - 阴影方向
+// @param {String} $blur [$shadow-blur-sd1] - 阴影羽化值
+// @param {Color} $shadow-color [$shadow-color-opacity-sd1] - 阴影颜色
+// @param {String} $shadow-x [$shadow-distance-sd1] - 阴影x方向距离
+// @param {String} $shadow-y [$shadow-distance-sd1] - 阴影y方向距离
+// @param {String} $shadow-spread [$shadow-spread-sd1] - 阴影扩散值
+//
+// @example scss - SCSS 用法
+//   $shadow-sd1:  shadow-maker();
+//
+// @return {List}
+
+@function shadow-maker($direction: $shadow-sides-base, $blur: $shadow-blur-sd1, $shadow-color: $shadow-color-opacity-sd1, $shadow-x: $shadow-distance-sd1, $shadow-y: $shadow-distance-sd1, $shadow-spread: $shadow-spread-sd1) {
+    $x: $shadow-x;
+    $y: $shadow-y;
+    $b: $blur;
+    $c: $shadow-color;
+    $s: $shadow-spread;
+
+    @if $b == 0 {
+        @return 0 0 0 #FFFFFF;
+    }
+
+    @if $direction == $shadow-sides-up {
+        $x: 0;
+        $y: -$shadow-y;
+    }
+    @else if $direction == $shadow-sides-right {
+        $y: 0;
+    }
+    @else if $direction == $shadow-sides-down {
+        $x: 0;
+    }
+    @else if $direction == $shadow-sides-left {
+        $x: -$shadow-x;
+        $y: 0;
+    }
+
+    @return #{$x}px #{$y}px #{$b}px #{$s}px $c;
+}
+
+/* end file "./util/_functions.scss" */
+
+/* start file "./util/_mixins.scss" */
+////
+/// @group utils
+////
+
+/// 清除浮动
+///
+/// @example scss
+///   .wrapper {
+///      @include clearfix;
+///   }
+///
+@mixin clearfix {
+    &:after {
+        visibility: hidden;
+        display: block;
+        height: 0;
+        font-size: 0;
+        content: '\0020';
+        clear: both;
+    }
+}
+
+/// 单行截取文字，添加『...』结尾
+///
+/// @param {Number | String} $width [100%] - 最大宽度，CSS长度，包括calc方法定义的表达式
+///
+/// @example scss - 使用
+///   .element {
+///     @include ellipsis;
+///   }
+///
+/// @example css - 输出
+///   .element {
+///     display: inline-block;
+///     max-width: 100%;
+///     overflow: hidden;
+///     text-overflow: ellipsis;
+///    white-space: nowrap;
+///     word-wrap: normal;
+///   }
+///
+@mixin ellipsis($width: 100%) {
+    display: inline-block;
+    max-width: $width;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+/// 多行截取文字，添加『...』结尾
+///
+/// @param {Number | String} $line-height [1.2em] - 行高
+/// @param {Number} $line-count [2] - 行数, 超出行数开始截取
+/// @param {Color} $bg-color [#fff] - 文本背景色
+///
+/// @example scss - 使用
+///   .element {
+///     @include multi-line-ellipsis(1.2em, 3, #fff);
+///   }
+///
+/// @example css - 输出
+///   .element {
+///     overflow: hidden;
+///     position: relative;
+///     line-height: 1.2em;
+///     max-height: 3.6em;
+///     text-align: justify;
+///     padding-right: 0em;
+///   }
+///
+///   .element:before {
+///     content: '...';
+///     position: absolute;
+///     right: 0;
+///     bottom: 0;
+///     background: #fff;
+///   }
+///
+///   .element:after {
+///     content: '';
+///     position: absolute;
+///     right: 0;
+///     width: 1em;
+///     height: 1em;
+///     margin-top: 0.2em;
+///     background: #fff;
+///   }
+///
+@mixin multi-line-ellipsis($line-height: 1.2em, $line-count: 2, $bg-color: #fff) {
+    overflow: hidden;
+    position: relative;
+    line-height: $line-height;
+    max-height: $line-height * $line-count;
+    text-align: justify;
+    padding-right: 0em;
+
+    &:before {
+        content: '...';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        background: $bg-color;
+    }
+
+    &:after {
+        content: '';
+        position: absolute;
+        right: 0;
+        width: 1em;
+        height: 1em;
+        margin-top: 0.2em;
+        background: $bg-color;
+    }
+}
+
+/// 隐藏文字
+///
+/// 『text-indent: -9999px』Hack 的替代版本
+///
+/// @link http://nicolasgallagher.com/another-css-image-replacement-technique
+///
+/// @example scss
+///   .element {
+///      @include hide-text;
+///      background: url(logo.png);
+///   }
+///
+@mixin hide-text {
+    font: 0/0 a;
+    text-shadow: none;
+    color: transparent;
+}
+
+/// 将元素垂直(水平)居中 (transform 版本)
+///
+/// @param {String} $inner-selector ['.inner'] - 直接子选择器名称
+/// @param {Bool} $horizontal [true] - 是否水平居中
+///
+/// @example scss - 使用
+///   .element {
+///      @include center-tl;
+///   }
+///
+/// @example css - 输出
+///   .element {
+///       position: relative;
+///   }
+///
+///   .element > .inner {
+///       position: absolute;
+///       top: 50%;
+///       left: 50%;
+///       transform: translate(-50%, -50%);
+///   }
+///
+@mixin center-tl($inner-selector: ".inner", $horizontal: true) {
+    position: relative;
+
+    & > #{$inner-selector} {
+        position: absolute;
+        top: 50%;
+
+        $translate-val: translateY(-50%);
+
+        @if $horizontal {
+            left: 50%;
+
+            $translate-val: translate(-50%, -50%);
+        }
+
+        transform: $translate-val;
+    }
+}
+
+/// 将元素垂直(水平)居中 (table 版本)
+///
+/// @param {String} $inner-selector ['.inner'] - 直接子选择器名称
+/// @param {Bool} $horizontal [true] - 是否水平居中
+///
+/// @example scss - 使用
+///   .element {
+///     @include center-td;
+///   }
+///
+/// @example css - 输出
+///   .element {
+///       text-align: center;
+///       display: table;
+///   }
+///
+///   .element > .inner {
+///       display: table-cell;
+///       vertical-align: middle;
+///   }
+///
+@mixin center-td($inner-selector: ".inner", $horizontal: true) {
+    @if $horizontal {
+        text-align: center;
+    }
+
+    display: table;
+
+    & > #{$inner-selector} {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+/// 快捷设置元素width,height的方法
+///
+/// @param {String | List} $size - CSS尺寸长度
+///
+/// @example scss - 使用
+///   .element {
+///     @include size(2em 4em);
+///   }
+///
+/// @example css - 输出
+///   .element {
+///     width: 2em;
+///     height: 4em;
+///   }
+///
+@mixin size($size) {
+    @if length($size) == 1 {
+        width: $size;
+        height: $size;
+    }
+    @else if length($size) == 2 {
+        width: nth($size, 1);
+        height: nth($size, 2);
+    }
+}
+
+// 快捷设置元素postion的方法 (传入null参数可略过一个方位)
+//
+// @param {String} $position [relative]
+//   CSS position属性值
+//
+// @param {List} $coordinates [null null null null]
+//   上、右、下、左 四个边值，可以传入1 ~ 4个值
+//
+// @example scss - 使用
+//   .element {
+//     @include position(absolute, 0 null null 10px);
+//   }
+//
+// @example css - 输出
+//   .element {
+//     position: absolute;
+//     left: 10px;
+//     top: 0;
+//   }
+//
+// @require {function} is-length
+// @require {function} unpack
+@mixin position($position: relative, $coordinates: null null null null) {
+    // 如果参数是数组
+    @if type-of($position) == list {
+        $coordinates: $position;
+        $position: relative;
+    }
+
+    $coordinates: unpack($coordinates);
+
+    $offsets: (top: nth($coordinates, 1), right: nth($coordinates, 2), bottom: nth($coordinates, 3), left: nth($coordinates, 4));
+
+    position: $position;
+
+    @each $offset, $value in $offsets {
+        // 如果是合法长度
+        @if is-length($value) {
+            #{$offset}: $value;
+        }
+    }
+}
+
+// 三角型生成器(8种形态)
+//
+// @param {Number | List} $size
+//   三角形尺寸
+//   传入一个参数，生成等宽高三角形；传入数组且长度为2，第一个设置宽度，第二个设置高度
+//
+// @param {String | List} $color
+//   传入一个参数，设置三角形颜色；传入数组且长度为2，第一个设置三角形颜色，第二个设置背景色
+//
+// @param {String} $direction
+//   三角形朝向，可传参数：up | down | right | left | up-right | up-left | down-right | down-left | inset-up | inset-down | inset-left | inset-right
+//
+// @example scss - 使用
+//   .element {
+//     &:before {
+//       content: " ";
+//       @include triangle(100px 200px, blue, up);
+//     }
+//   }
+//
+// @example css - 输出
+//   .example:before {
+//     content: " ";
+//     height: 0;
+//     width: 0;
+//     border-bottom: 200px solid blue;
+//     border-left: 50px solid transparent;
+//     border-right: 50px solid transparent;
+//   }
+//
+@mixin triangle($size, $color, $direction) {
+    $width: nth($size, 1);
+    $height: nth($size, length($size));
+    $foreground-color: nth($color, 1);
+    $background-color: if(length($color) == 2, nth($color, 2), transparent);
+
+    height: 0;
+    width: 0;
+
+    @if $direction == up or $direction == down or $direction == right or $direction == left {
+        $width: $width / 2;
+        $height: if(length($size) > 1, $height, $height / 2);
+
+        @if $direction == up {
+            border-bottom: $height solid $foreground-color;
+            border-left: $width solid $background-color;
+            border-right: $width solid $background-color;
+        }
+        @else if $direction == right {
+            border-bottom: $width solid $background-color;
+            border-left: $height solid $foreground-color;
+            border-top: $width solid $background-color;
+        }
+        @else if $direction == down {
+            border-left: $width solid $background-color;
+            border-right: $width solid $background-color;
+            border-top: $height solid $foreground-color;
+        }
+        @else if $direction == left {
+            border-bottom: $width solid $background-color;
+            border-right: $height solid $foreground-color;
+            border-top: $width solid $background-color;
+        }
+    }
+    @else if $direction == up-right or $direction == up-left {
+        border-top: $height solid $foreground-color;
+
+        @if $direction == up-right {
+            border-left: $width solid $background-color;
+        }
+        @else if $direction == up-left {
+            border-right: $width solid $background-color;
+        }
+    }
+    @else if $direction == down-right or $direction == down-left {
+        border-bottom: $height solid $foreground-color;
+
+        @if $direction == down-right {
+            border-left: $width solid $background-color;
+        }
+        @else if $direction == down-left {
+            border-right: $width solid $background-color;
+        }
+    }
+    @else if $direction == inset-up {
+        border-color: $background-color $background-color $foreground-color;
+        border-style: solid;
+        border-width: $height $width;
+    }
+    @else if $direction == inset-down {
+        border-color: $foreground-color $background-color $background-color;
+        border-style: solid;
+        border-width: $height $width;
+    }
+    @else if $direction == inset-right {
+        border-color: $background-color $background-color $background-color $foreground-color;
+        border-style: solid;
+        border-width: $width $height;
+    }
+    @else if $direction == inset-left {
+        border-color: $background-color $foreground-color $background-color $background-color;
+        border-style: solid;
+        border-width: $width $height;
+    }
+}
+
+@mixin box-sizing {
+    box-sizing: border-box;
+
+    *,
+    *:before,
+    *:after {
+        box-sizing: border-box;
+    }
+}
+
+@mixin global-font {
+    color: $color-text1-4;
+    font-family: $font-family-base;
+    font-size: $font-size-base-body1;
+    line-height: $font-lineheight-base;
+}
+
+@mixin link {
+    color: $color-link-1;
+    text-decoration: none;
+
+    &:hover {
+        color: $color-link-3;
+    }
+
+    &:active {
+        color: $color-link-3;
+        text-decoration: underline;
+    }
+}
+
+@mixin link-with-visited {
+    text-decoration: none;
+
+    &:link {
+        color: $color-link-1;
+    }
+
+    &:visited {
+        color: $color-link-2;
+    }
+
+    &:hover {
+        color: $color-link-3;
+    }
+
+    &:active {
+        color: $color-link-3;
+        text-decoration: underline;
+    }
+}
+
+@mixin icon-size($size, $marginLeft: false, $marginRight: false, $transform: false) {
+    @if $transform {
+        transform: $transform;
+    }
+
+    @if $marginLeft {
+        margin-left: $marginLeft;
+    }
+
+    @if $marginRight {
+        margin-right: $marginRight;
+    }
+
+    &:before {
+        width: $size;
+        font-size: $size;
+        line-height: inherit;
+    }
+
+    // Chrome不支持小于12px的字体，故采用缩放的方式缩小字体
+    @if $size < 12 {
+        @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+            @if $transform {
+                transform: scale($size / $icon-s) $transform;
+            }
+            @else {
+                transform: scale($size / $icon-s);
+            }
+
+            @if $marginLeft {
+                margin-left: $marginLeft - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-left: -($icon-s - $size) / 2;
+            }
+
+            @if $marginRight {
+                margin-right: $marginRight - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-right: -($icon-s - $size) / 2;
+            }
+
+            &:before {
+                width: $icon-s;
+                font-size: $icon-s;
+            }
+        }
+    }
+}
+
+@mixin icon-square-size($size, $marginTop: false, $marginRight: false, $marginBottom: false, $marginLeft: false, $transform: false) {
+    @if $transform {
+        transform: $transform;
+    }
+
+    @if $marginTop {
+        margin-top: $marginTop;
+    }
+
+    @if $marginRight {
+        margin-right: $marginRight;
+    }
+
+    @if $marginBottom {
+        margin-bottom: $marginBottom;
+    }
+
+    @if $marginLeft {
+        margin-left: $marginLeft;
+    }
+
+    width: $size;
+    height: $size;
+    line-height: $size;
+
+    &:before {
+        width: $size;
+        height: $size;
+        font-size: $size;
+        line-height: $size;
+    }
+
+    // Chrome不支持小于12px的字体，故采用缩放的方式缩小字体
+    @if $size < 12 {
+        @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+            @if $transform {
+                transform: scale($size / $icon-s) $transform;
+            }
+            @else {
+                transform: scale($size / $icon-s);
+            }
+
+            @if $marginTop {
+                margin-top: $marginTop - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-top: -($icon-s - $size) / 2;
+            }
+
+            @if $marginRight {
+                margin-right: $marginRight - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-right: -($icon-s - $size) / 2;
+            }
+
+            @if $marginBottom {
+                margin-bottom: $marginBottom - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-bottom: -($icon-s - $size) / 2;
+            }
+
+            @if $marginLeft {
+                margin-left: $marginLeft - ($icon-s - $size) / 2;
+            }
+            @else {
+                margin-left: -($icon-s - $size) / 2;
+            }
+
+            width: $icon-s;
+            height: $icon-s;
+            line-height: $icon-s;
+
+            &:before {
+                width: $icon-s;
+                height: $icon-s;
+                font-size: $icon-s;
+                line-height: $icon-s;
+            }
+        }
+    }
+}
+
+@mixin icon-handler($size, $baseSize: $icon-s, $offset: 0) {
+    &:before {
+        width: $size;
+        font-size: $size;
+        line-height: inherit;
+    }
+
+    // Chrome不支持小于12px的字体，故采用缩放的方式缩小字体
+    @if $size < 12 {
+        @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+            transform: scale($size / $baseSize) translateX($offset * 2);
+
+            &:before {
+                width: $baseSize;
+                font-size: $baseSize;
+            }
+        }
+    }
+}
+
+// 为兼容使用旧mixin的其他组件暂时保留以下代码，1.x会删除
+@mixin icon-size-handler($size, $baseSize: $icon-s) {
+    @if $size < 12 {
+        width: $baseSize;
+        font-size: #{$size} \9;
+        transform: scale($size / $baseSize);
+    }
+    @else {
+        width: $size;
+        font-size: $size;
+    }
+
+    line-height: inherit;
+}
+
+@mixin font-face-handler($name, $url) {
+    @if $name != Roboto {
+        @font-face {
+            font-family: "#{$name}";
+            src: url("#{$url}");
+        }
+    }
+}
+
+/* end file "./util/_mixins.scss" */
+
+// Variables
+
+/* start file "./variables/_global.scss" */
+////
+/// @group global
+/// @module global: 全局基础样式
+/// @category style
+////
+
+/// 全局命名空间前缀
+/// @unconfigurable
+$css-prefix: "next-" !default;
+
+// Typography
+$typo-margin-bottom: 0.5;
+
+// Z-Indexes
+// [...]
+// -------------------------------
+$z-pane: 89 !default;
+$z-menu: 99 !default;
+$z-select: 109 !default;
+$z-dialog: 199 !default;
+$z-balloon: 299 !default;
+$z-loading-panel: 399 !default;
+$z-tour-user: 499 !default;
+$z-tour-new: 599 !default;
+$z-dialog-login: 699 !default;
+$z-msg: 999 !default;
+
+$prefix-for-webkit: true !default;
+$prefix-for-mozilla: true !default;
+$prefix-for-microsoft: true !default;
+$prefix-for-opera: true !default;
+$prefix-for-spec: true !default;
+
+/* end file "./variables/_global.scss" */
+
+/* start file "./variables/_size.scss" */
+////
+/// @group size
+/// @module size: 尺寸
+/// @type String
+/// @category style
+////
+
+/**
+ * 尺寸 基础尺寸
+ * 命名能在语义的前提下简单就尽量简单, 这里可以是 size-2x, space-2x, size-base ...
+ * 不过可以在语义的前提下做的更精简一些, 于是用了s2, s1等
+ * 可用变量: `$s1 - $s8`
+ * @example scss - 使用
+ *   .element {
+ *     padding: $s1 !default;
+ *   }
+ *
+ * @example css - CSS 输出
+ *   .element {
+ *     padding: 4px !default;
+ *   }
+ */
+
+/// size-base
+/// @semantic 基础尺寸
+/// @type Length
+$size-base: 4px !default;
+
+/// s-0
+/// @export length
+/// @unconfigurable
+$s-0: 0;
+
+/// s-1
+/// @unconfigurable
+/// @export length
+$s-1: $size-base * 1;
+
+/// s-2
+/// @export length
+/// @unconfigurable
+$s-2: $size-base * 2;
+
+/// s-3
+/// @export length
+/// @unconfigurable
+$s-3: $size-base * 3;
+
+/// s-4
+/// @export length
+/// @unconfigurable
+$s-4: $size-base * 4;
+
+/// s-5
+/// @export length
+/// @unconfigurable
+$s-5: $size-base * 5;
+
+/// s-6
+/// @export length
+/// @unconfigurable
+$s-6: $size-base * 6;
+
+/// s-7
+/// @export length
+/// @unconfigurable
+$s-7: $size-base * 7;
+
+/// s-8
+/// @export length
+/// @unconfigurable
+$s-8: $size-base * 8;
+
+/// s-9
+/// @export length
+/// @unconfigurable
+$s-9: $size-base * 9;
+
+/// s-10
+/// @export length
+/// @unconfigurable
+$s-10: $size-base * 10;
+
+/// s-11
+/// @export length
+/// @unconfigurable
+$s-11: $size-base * 11;
+
+/// s-12
+/// @export length
+/// @unconfigurable
+$s-12: $size-base * 12;
+
+/// s-13
+/// @export length
+/// @unconfigurable
+$s-13: $size-base * 13;
+
+/// s-14
+/// @export length
+/// @unconfigurable
+$s-14: $size-base * 14;
+
+/// s-15
+/// @export length
+/// @unconfigurable
+$s-15: $size-base * 15;
+
+/// s-16
+/// @export length
+/// @unconfigurable
+$s-16: $size-base * 16;
+
+/// s-17
+/// @export length
+/// @unconfigurable
+$s-17: $size-base * 17;
+
+/// s-18
+/// @export length
+/// @unconfigurable
+$s-18: $size-base * 18;
+
+/// s-19
+/// @export length
+/// @unconfigurable
+$s-19: $size-base * 19;
+
+/// s-20
+/// @export length
+/// @unconfigurable
+$s-20: $size-base * 20;
+
+/// s-21
+/// @export length
+/// @unconfigurable
+$s-21: $size-base * 21;
+
+/// s-22
+/// @export length
+/// @unconfigurable
+$s-22: $size-base * 22;
+
+/// s-23
+/// @export length
+/// @unconfigurable
+$s-23: $size-base * 23;
+
+/// s-24
+/// @export length
+/// @unconfigurable
+$s-24: $size-base * 24;
+
+/// s-25
+/// @export length
+/// @unconfigurable
+$s-25: $size-base * 25;
+
+/// s-26
+/// @export length
+/// @unconfigurable
+$s-26: $size-base * 26;
+
+/// s-27
+/// @export length
+/// @unconfigurable
+$s-27: $size-base * 27;
+
+/// s-28
+/// @export length
+/// @unconfigurable
+$s-28: $size-base * 28;
+
+/// s-29
+/// @export length
+/// @unconfigurable
+$s-29: $size-base * 29;
+
+/// s-30
+/// @export length
+/// @unconfigurable
+$s-30: $size-base * 30;
+
+/// s-31
+/// @export length
+/// @unconfigurable
+$s-31: $size-base * 31;
+
+/// s-32
+/// @export length
+/// @unconfigurable
+$s-32: $size-base * 32;
+
+/// s-33
+/// @export length
+/// @unconfigurable
+$s-33: $size-base * 33;
+
+/// s-34
+/// @export length
+/// @unconfigurable
+$s-34: $size-base * 34;
+
+/// s-35
+/// @export length
+/// @unconfigurable
+$s-35: $size-base * 35;
+
+/// s-36
+/// @export length
+/// @unconfigurable
+$s-36: $size-base * 36;
+
+/// s-37
+/// @export length
+/// @unconfigurable
+$s-37: $size-base * 37;
+
+/// s-38
+/// @export length
+/// @unconfigurable
+$s-38: $size-base * 38;
+
+/// s-39
+/// @export length
+/// @unconfigurable
+$s-39: $size-base * 39;
+
+/// s-40
+/// @export length
+/// @unconfigurable
+$s-40: $size-base * 40;
+
+/// s-41
+/// @export length
+/// @unconfigurable
+$s-41: $size-base * 41;
+
+/// s-42
+/// @export length
+/// @unconfigurable
+$s-42: $size-base * 42;
+
+/// s-43
+/// @export length
+/// @unconfigurable
+$s-43: $size-base * 43;
+
+/// s-44
+/// @export length
+/// @unconfigurable
+$s-44: $size-base * 44;
+
+/// s-45
+/// @export length
+/// @unconfigurable
+$s-45: $size-base * 45;
+
+/// s-46
+/// @export length
+/// @unconfigurable
+$s-46: $size-base * 46;
+
+/// s-47
+/// @export length
+/// @unconfigurable
+$s-47: $size-base * 47;
+
+/// s-48
+/// @export length
+/// @unconfigurable
+$s-48: $size-base * 48;
+
+/// s-49
+/// @export length
+/// @unconfigurable
+$s-49: $size-base * 49;
+
+/// s-50
+/// @export length
+/// @unconfigurable
+$s-50: $size-base * 50;
+
+// Patch
+// ----------- 尺寸 patch ----------- //
+
+$s0: $s-0;
+$s1: $s-1;
+$s2: $s-2;
+$s3: $s-3;
+$s4: $s-4;
+$s5: $s-5;
+$s6: $s-6;
+$s7: $s-7;
+$s8: $s-8;
+$s9: $s-9;
+$s10: $s-10;
+$s11: $s-11;
+$s12: $s-12;
+$s13: $s-13;
+$s14: $s-14;
+$s15: $s-15;
+$s16: $s-16;
+$s17: $s-17;
+$s18: $s-18;
+$s19: $s-19;
+$s20: $s-20;
+$s21: $s-21;
+$s22: $s-22;
+$s23: $s-23;
+$s24: $s-24;
+$s25: $s-25;
+$s26: $s-26;
+$s27: $s-27;
+$s28: $s-28;
+$s29: $s-29;
+$s30: $s-30;
+$s31: $s-31;
+$s32: $s-32;
+$s33: $s-33;
+$s34: $s-34;
+$s35: $s-35;
+$s36: $s-36;
+$s37: $s-37;
+$s38: $s-38;
+$s39: $s-39;
+$s40: $s-40;
+$s41: $s-41;
+$s42: $s-42;
+$s43: $s-43;
+$s44: $s-44;
+$s45: $s-45;
+$s46: $s-46;
+$s47: $s-47;
+$s48: $s-48;
+$s49: $s-49;
+$s50: $s-50;
+
+/* end file "./variables/_size.scss" */
+
+/* start file "./variables/_color.scss" */
+////
+/// @group color
+/// @module color: 颜色
+/// @type Color
+/// @category style
+////
+
+// ----------- 品牌主色 ----------- //
+
+/// brand1-1
+/// @group color-brand1
+/// @semantic 浅
+/// @export
+$color-brand1-1: #FFF0E6 !default;
+
+/// brand1-2
+/// @group color-brand1
+/// @export
+$color-brand1-2: #FFE3D1 !default;
+
+/// brand1-3
+/// @group color-brand1
+/// @export
+$color-brand1-3: #FFC8A3 !default;
+
+/// brand1-4
+/// @group color-brand1
+/// @export
+$color-brand1-4: #FFAC75 !default;
+
+/// brand1-5
+/// @group color-brand1
+/// @export
+$color-brand1-5: #FF8B3D !default;
+
+/// brand1-6
+/// @group color-brand1
+/// @semantic 常规
+/// @export
+$color-brand1-6: #FF6A00 !default;
+
+/// brand1-7
+/// @group color-brand1
+/// @export
+$color-brand1-7: #F75F00 !default;
+
+/// brand1-8
+/// @group color-brand1
+/// @export
+$color-brand1-8: #F05800 !default;
+
+/// brand1-9
+/// @group color-brand1
+/// @semantic 深
+/// @export
+$color-brand1-9: #E35300 !default;
+
+/// brand1-10
+/// @group color-brand1
+/// @export
+$color-brand1-10: #D64F00 !default;
+
+// ----------- 品牌副色 ----------- //
+
+/// brand2-1
+/// @group color-brand2
+/// @export
+$color-brand2-1: #E8F6FF !default;
+
+/// brand2-2
+/// @group color-brand2
+/// @export
+$color-brand2-2: #D3E9F7 !default;
+
+/// brand2-3
+/// @group color-brand2
+/// @export
+$color-brand2-3: #A6D3F0 !default;
+
+/// brand2-6
+/// @group color-brand2
+/// @export
+$color-brand2-6: #2192D9 !default;
+
+/// brand7-6
+/// @group color-brand7
+/// @export
+$color-brand7-6: #4F74B3 !default;
+
+/// brand7-9
+/// @group color-brand7
+/// @export
+$color-brand7-9: #2D559C !default;
+
+// ----------- 功能色 ----------- //
+
+// 成功
+
+/// success-1
+/// @group color-success
+/// @semantic 浅
+/// @export
+$color-success-1: #E8F9E8 !default;
+
+/// success-2
+/// @group color-success
+/// @semantic 常规
+/// @export
+$color-success-2: #1DC11D !default;
+
+/// success-3
+/// @group color-success
+/// @semantic 深
+/// @export
+$color-success-3: #0DA80D !default;
+
+// 提示
+
+/// notice-1
+/// @group color-notice
+/// @semantic 浅
+/// @export
+$color-notice-1: #DAEEFF !default;
+
+/// notice-2
+/// @group color-notice
+/// @semantic 常规
+/// @export
+$color-notice-2: #0089FD !default;
+
+/// notice-3
+/// @group color-notice
+/// @semantic 深
+/// @export
+$color-notice-3: #306AC9 !default;
+
+// 警告
+
+/// warning-1
+/// @group color-warning
+/// @semantic 浅
+/// @export
+$color-warning-1: #FFF1E8 !default;
+
+/// warning-2
+/// @group color-warning
+/// @semantic 常规
+/// @export
+$color-warning-2: #FFA033 !default;
+
+/// warning-3
+/// @group color-warning
+/// @semantic 深
+/// @export
+$color-warning-3: #EB7E10 !default;
+
+// 错误
+
+/// error-1
+/// @group color-error
+/// @semantic 浅
+/// @export
+$color-error-1: #FAE7E7 !default;
+
+/// error-2
+/// @group color-error
+/// @semantic 常规
+/// @export
+$color-error-2: #FF3333 !default;
+
+/// error-3
+/// @group color-error
+/// @semantic 深
+/// @export
+$color-error-3: #E61C1C !default;
+
+// 帮助
+
+/// help-1
+/// @group color-help
+/// @semantic 浅
+/// @export
+$color-help-1: #FDF5FF !default;
+
+/// help-2
+/// @group color-help
+/// @semantic 常规
+/// @export
+$color-help-2: #B921F3 !default;
+
+/// help-3
+/// @group color-help
+/// @semantic 深
+/// @export
+$color-help-3: #A116D9 !default;
+
+// 链接
+
+/// link-1
+/// @group color-link
+/// @semantic 默认
+/// @export
+$color-link-1: #2192D9 !default;
+
+/// link-2
+/// @group color-link
+/// @semantic 已访问
+/// @export
+$color-link-2: #0073bd !default;
+
+/// link-3
+/// @group color-link
+/// @semantic 鼠标滑过
+/// @export
+$color-link-3: #0B70AF !default;
+
+// 其它
+
+/// other-1
+/// @group color-other
+/// @export
+$color-other-1: #DAEEFF !default;
+
+/// other-2
+/// @group color-other
+/// @export
+$color-other-2: #0089FD !default;
+
+/// other-3
+/// @group color-other
+/// @export
+$color-other-3: #306AC9 !default;
+
+// ----------- 中立色 ----------- //
+
+// 预设
+
+/// white
+/// @semantic 纯白
+/// @export
+$color-white: #FFFFFF;
+
+/// black
+/// @semantic 纯黑
+/// @export
+$color-black: #000000;
+
+/// transparent
+/// @export
+$color-transparent: transparent;
+
+// 线条
+
+/// line1-1
+/// @group color-line1
+/// @semantic 浅
+/// @export
+$color-line1-1: #E6E7EB !default;
+
+/// line1-2
+/// @group color-line1
+/// @semantic 常规
+/// @export
+$color-line1-2: #DCDEE3 !default;
+
+/// line1-3
+/// @group color-line1
+/// @semantic 深
+/// @export
+$color-line1-3: #C4C6CF !default;
+
+/// line1-4
+/// @group color-line1
+/// @semantic 重
+/// @export
+$color-line1-4: #A0A2AD !default;
+
+// 填充
+
+/// fill1-1
+/// @group color-fill1
+/// @semantic 浅
+/// @export
+$color-fill1-1: #F7F8FA !default;
+
+/// fill1-2
+/// @group color-fill1
+/// @semantic 常规
+/// @export
+$color-fill1-2: #F2F3F7 !default;
+
+/// fill1-3
+/// @group color-fill1
+/// @semantic 深
+/// @export
+$color-fill1-3: #EBECF0 !default;
+
+/// fill1-4
+/// @group color-fill1
+/// @semantic 重
+/// @export
+$color-fill1-4: #DEEDED !default;
+
+// 文字
+
+/// text1-1
+/// @group color-text1
+/// @semantic 禁用/水印
+/// @export
+$color-text1-1: #CCCCCC !default;
+
+/// text1-2
+/// @group color-text1
+/// @semantic 脚注
+/// @export
+$color-text1-2: #999999 !default;
+
+/// text1-3
+/// @group color-text1
+/// @semantic 正文
+/// @export
+$color-text1-3: #666666 !default;
+
+/// text1-4
+/// @group color-text1
+/// @semantic 标题
+/// @export
+$color-text1-4: #333333 !default;
+
+/// text1-5
+/// @group color-text1
+/// @export
+$color-text1-5: #222222 !default;
+
+// Patch
+// ----------- 品牌色 patch ----------- //
+
+$color-b1-1: $color-brand1-1 !default;
+$color-b1-2: $color-brand1-2 !default;
+$color-b1-3: $color-brand1-3 !default;
+$color-b1-4: $color-brand1-4 !default;
+$color-b1-5: $color-brand1-5 !default;
+$color-b1-6: $color-brand1-6 !default;
+$color-b1-7: $color-brand1-7 !default;
+$color-b1-8: $color-brand1-8 !default;
+$color-b1-9: $color-brand1-9 !default;
+$color-b1-10: $color-brand1-10 !default;
+
+$color-b2-1: $color-brand2-1 !default;
+$color-b2-2: $color-brand2-2 !default;
+$color-b2-3: $color-brand2-3 !default;
+$color-b2-6: $color-brand2-6 !default;
+$color-b7-6: $color-brand7-6 !default;
+$color-b7-9: $color-brand7-9 !default;
+
+$color-b2-4: #7ABEE8 !default;
+$color-b2-5: #4DA8E1 !default;
+$color-b2-7: #1587D1 !default;
+$color-b2-8: #0A7EC9 !default;
+$color-b2-9: #0073BD !default;
+$color-b2-10: #006AB0 !default;
+
+$color-b3-1: #FFE2DB !default;
+$color-b3-2: #FFC8BF !default;
+$color-b3-3: #F7A394 !default;
+$color-b3-4: #ED8472 !default;
+$color-b3-5: #E3715D !default;
+$color-b3-6: #D9624E !default;
+$color-b3-7: #D15241 !default;
+$color-b3-8: #C43F31 !default;
+$color-b3-9: #BD3224 !default;
+$color-b3-10: #B32018 !default;
+
+$color-b4-1: #E7F5E5 !default;
+$color-b4-2: #CDEBC8 !default;
+$color-b4-3: #B0DEA9 !default;
+$color-b4-4: #92CC86 !default;
+$color-b4-5: #70B564 !default;
+$color-b4-6: #55A344 !default;
+$color-b4-7: #479635 !default;
+$color-b4-8: #3B8F28 !default;
+$color-b4-9: #358723 !default;
+$color-b4-10: #257D12 !default;
+
+$color-b5-1: #FEF7DA !default;
+$color-b5-2: #FFF2C2 !default;
+$color-b5-3: #FDE89D !default;
+$color-b5-4: #FFE27D !default;
+$color-b5-5: #FBD653 !default;
+$color-b5-6: #FACE32 !default;
+$color-b5-7: #F7BF25 !default;
+$color-b5-8: #F2B211 !default;
+$color-b5-9: #EDA807 !default;
+$color-b5-10: #E89A00 !default;
+
+$color-b6-1: #E9E6FA !default;
+$color-b6-2: #D5CFF7 !default;
+$color-b6-3: #B8AFED !default;
+$color-b6-4: #9F94E8 !default;
+$color-b6-5: #887BE3 !default;
+$color-b6-6: #6D5CDB !default;
+$color-b6-7: #5F4DD1 !default;
+$color-b6-8: #5240C7 !default;
+$color-b6-9: #4634BF !default;
+$color-b6-10: #3A27B5 !default;
+
+$color-b7-1: #E3EAF7 !default;
+$color-b7-2: #CCD9F0 !default;
+$color-b7-3: #AABEE0 !default;
+$color-b7-4: #84A1D1 !default;
+$color-b7-5: #6D8CC2 !default;
+$color-b7-7: #4369AB !default;
+$color-b7-8: #375EA3 !default;
+$color-b7-10: #224B94 !default;
+
+$color-b8-1: #FFEBEE !default;
+$color-b8-2: #FFD9E0 !default;
+$color-b8-3: #FFC2CE !default;
+$color-b8-4: #FFA3B6 !default;
+$color-b8-5: #FF89A1 !default;
+$color-b8-6: #F96985 !default;
+$color-b8-7: #F54E70 !default;
+$color-b8-8: #ED395D !default;
+$color-b8-9: #DE284C !default;
+$color-b8-10: #D1173F !default;
+
+// ----------- 功能色 patch ----------- //
+
+$color-f1-1: $color-warning-2 !default;
+$color-f1-2: $color-warning-1 !default;
+$color-f1-3: $color-warning-3 !default;
+
+$color-f2-1: $color-error-2 !default;
+$color-f2-2: $color-error-1 !default;
+$color-f2-3: $color-error-3 !default;
+
+$color-f3-1: $color-success-2 !default;
+$color-f3-2: $color-success-1 !default;
+$color-f3-3: $color-success-3 !default;
+
+$color-f4-1: $color-link-1 !default;
+$color-f4-2: $color-link-3 !default;
+$color-f4-3: $color-link-2 !default;
+
+$color-f5-1: $color-notice-2 !default;
+$color-f5-2: $color-notice-1 !default;
+$color-f5-3: $color-notice-3 !default;
+
+$color-f6-1: $color-other-2 !default;
+$color-f6-2: $color-other-1 !default;
+$color-f6-3: $color-other-3 !default;
+
+$color-f1-4: transparent !default;
+$color-f1-5: transparent !default;
+$color-f1-6: transparent !default;
+$color-f1-7: transparent !default;
+$color-f1-8: transparent !default;
+$color-f1-9: transparent !default;
+$color-f1-10: transparent !default;
+
+$color-f2-4: transparent !default;
+$color-f2-5: transparent !default;
+$color-f2-6: transparent !default;
+$color-f2-7: transparent !default;
+$color-f2-8: transparent !default;
+$color-f2-9: transparent !default;
+$color-f2-10: transparent !default;
+
+$color-f3-4: transparent !default;
+$color-f3-5: transparent !default;
+$color-f3-6: transparent !default;
+$color-f3-7: transparent !default;
+$color-f3-8: transparent !default;
+$color-f3-9: transparent !default;
+$color-f3-10: transparent !default;
+
+$color-f4-4: transparent !default;
+$color-f4-5: transparent !default;
+$color-f4-6: transparent !default;
+$color-f4-7: transparent !default;
+$color-f4-8: transparent !default;
+$color-f4-9: transparent !default;
+$color-f4-10: transparent !default;
+
+$color-f5-4: transparent !default;
+$color-f5-5: transparent !default;
+$color-f5-6: transparent !default;
+$color-f5-7: transparent !default;
+$color-f5-8: transparent !default;
+$color-f5-9: transparent !default;
+$color-f5-10: transparent !default;
+
+$color-f6-4: transparent !default;
+$color-f6-5: transparent !default;
+$color-f6-6: transparent !default;
+$color-f6-7: transparent !default;
+$color-f6-8: transparent !default;
+$color-f6-9: transparent !default;
+$color-f6-10: transparent !default;
+
+// ----------- 中立色 patch ----------- //
+
+$color-n1-1: $color-white !default;
+$color-n1-2: $color-fill1-1 !default;
+$color-n1-3: $color-fill1-2 !default;
+$color-n1-4: $color-fill1-3 !default;
+$color-n1-5: $color-line1-1 !default;
+$color-n1-6: $color-line1-2 !default;
+$color-n1-7: $color-line1-3 !default;
+$color-n1-8: $color-line1-4 !default;
+$color-n1-9: $color-black !default;
+$color-n1-10: $color-fill1-4 !default;
+
+$color-n2-1: $color-text1-1 !default;
+$color-n2-2: $color-text1-2 !default;
+$color-n2-3: $color-text1-3 !default;
+$color-n2-4: $color-text1-4 !default;
+$color-n2-5: $color-text1-5 !default;
+
+$color-n2-6: transparent !default;
+$color-n2-7: transparent !default;
+$color-n2-8: transparent !default;
+$color-n2-9: transparent !default;
+$color-n2-10: transparent !default;
+
+/* end file "./variables/_color.scss" */
+
+/* start file "./variables/_corner.scss" */
+////
+/// @group corner
+/// @module corner: 边角
+/// @category style
+////
+
+// Corner 预定义圆角尺寸
+// 根据 Alibaba Base DPL(BASE DPL)设计规范实现
+// 圆角是用一段与角的两边相切的圆弧
+// 规则: x == y, 所有方向阴影的 blur 值, 透明度, 颜色都应该相同
+// 类型: Right Angle(直角), Rounded(圆角)
+// -------------------------------
+
+/// corner-0
+/// @semantic 直角
+/// @export
+/// @type Length
+$corner-0: 0px !default;
+
+/// corner-1
+/// @semantic 常规圆角
+/// @export
+/// @type Length
+$corner-1: 3px !default;
+
+/// corner-2
+/// @semantic 大圆角
+/// @export
+/// @type Length
+$corner-2: 5px !default;
+
+/// corner-3
+/// @semantic 超大圆角
+/// @export
+/// @type Length
+$corner-3: 7px !default;
+
+/// corner-4
+/// @export
+/// @type Length
+$corner-4: 10px !default;
+
+/// corner-5
+/// @export
+/// @type Length
+$corner-5: 15px !default;
+
+/// corner-circle
+/// @semantic 圆形
+/// @export
+/// @unconfigurable
+$corner-circle: 50% !default;
+
+// Patch
+// ----------- 边角 patch ----------- //
+
+$corner-radius-base: 3px;
+$corner-radius-r0: $corner-0 !default;
+$corner-radius-r1: $corner-1 !default;
+$corner-radius-r2: $corner-2 !default;
+$corner-radius-r3: $corner-3 !default;
+$corner-radius-r4: $corner-4 !default;
+$corner-radius-r5: $corner-5 !default;
+$corner-radius-circle: $corner-circle !default;
+
+/* end file "./variables/_corner.scss" */
+
+/* start file "./variables/_font.scss" */
+/* sass file "../util/_mixins.scss" already loaded */
+
+////
+/// @group font
+/// @module font: 字体
+/// @type String
+/// @category style
+/// @export
+////
+
+// Font & Typography
+// 根据 Alibaba Base DPL(BASE DPL) 设计规范实现
+// 字体主要解决的是内容可读性以及信息的层级表达，同时选择不同的字体来传达不同的设计风格的统一性和整体性，从而在阅读的舒适性上达到平衡。
+// -------------------------------
+
+$font-custom-path: "//i.alicdn.com/artascope-font/20160419204543/font/" !default;
+$font-custom-name: Roboto !default;
+$font-name-thin: roboto-thin !default;
+$font-name-light: roboto-light !default;
+$font-name-regular: roboto-regular !default;
+$font-name-medium: roboto-medium !default;
+$font-name-bold: roboto-bold !default;
+$font-name-bolder: roboto-bolder !default;
+$font-lineheight-base: 1.2857142;
+
+$font-face-name-default: "#{$font-custom-name}";
+$font-face-url-default: "#{$font-custom-path}#{$font-name-thin}.eot";
+
+// ------------------- font-face ------------------- //
+
+$font-face1-name: $font-face-name-default !default;
+$font-face1-url: $font-face-url-default !default;
+$font-face2-name: $font-face-name-default !default;
+$font-face2-url: $font-face-url-default !default;
+$font-face3-name: $font-face-name-default !default;
+$font-face3-url: $font-face-url-default !default;
+
+@include font-face-handler($font-face1-name, $font-face1-url);
+@include font-face-handler($font-face2-name, $font-face2-url);
+@include font-face-handler($font-face3-name, $font-face3-url);
+
+// ------------------- font-family ------------------- //
+
+/// family
+/// @semantic 字体
+/// @export
+$font-family-base: Roboto, "Helvetica Neue", Helvetica, Tahoma, Arial, "PingFang SC", "Microsoft YaHei" !default;
+
+$font-family-en: Roboto, "Helvetica Neue", Helvetica, Tahoma, Arial !default;
+$font-family-zh: "Microsoft YaHei", SimSun, Arial !default;
+
+// ------------------- font-weight ------------------- //
+
+/// light
+/// @semantic 细体
+/// @export weightcore
+$font-weight-1: lighter !default;
+
+/// regular
+/// @semantic 常规
+/// @export weightcore
+$font-weight-2: normal !default;
+
+/// bold
+/// @semantic 粗体
+/// @export weightcore
+$font-weight-3: bold !default;
+
+$font-weight-thin: 200 !default;
+$font-weight-medium: 500 !default;
+$font-weight-bolder: bolder !default;
+
+// ------------------- font-size ------------------- //
+
+/// display-3
+/// @semantic 运营标题-大
+/// @export size
+$font-size-display-3: 56px !default;
+
+/// display-2
+/// @semantic 运营标题-中
+/// @export size
+$font-size-display-2: 48px !default;
+
+/// display-1
+/// @semantic 运营标题-小
+/// @export size
+$font-size-display-1: 36px !default;
+
+/// headline
+/// @semantic 大字标题
+/// @export size
+$font-size-headline: 24px !default;
+
+/// title
+/// @semantic 标题
+/// @export size
+$font-size-title: 20px !default;
+
+/// subhead
+/// @semantic 副标题
+/// @export size
+$font-size-subhead: 16px !default;
+
+/// body-2
+/// @semantic 正文-加粗
+/// @export size
+$font-size-body-2: 14px !default;
+
+/// body-1
+/// @semantic 正文-常规
+/// @export size
+$font-size-body-1: 14px !default;
+
+/// caption
+/// @semantic 水印文本
+/// @export size
+$font-size-caption: 12px !default;
+
+// ------------------- line-height ------------------- //
+
+/// lineheight-1
+/// @semantic 密集
+/// @export lineheight
+/// @type Number
+$font-lineheight-1: 1 !default;
+
+/// lineheight-2
+/// @semantic 常规
+/// @export lineheight
+/// @type Number
+$font-lineheight-2: 1.5 !default;
+
+/// lineheight-3
+/// @semantic 舒适
+/// @export lineheight
+/// @type Number
+$font-lineheight-3: 1.6 !default;
+
+/// lineheight-4
+/// @semantic 宽松
+/// @export lineheight
+/// @type Number
+$font-lineheight-4: 1.8 !default;
+
+/// lineheight-5
+/// @semantic 宽敞
+/// @export lineheight
+/// @type Number
+$font-lineheight-5: 2 !default;
+
+// Patch
+// ----------- 字体 patch ----------- //
+
+$font-weight-core-light: $font-weight-1 !default;
+$font-weight-core-thin: $font-weight-thin !default;
+$font-weight-core-regular: $font-weight-2 !default;
+$font-weight-core-medium: $font-weight-medium !default;
+$font-weight-core-bold: $font-weight-3 !default;
+$font-weight-core-bolder: $font-weight-bolder !default;
+$font-weight-base-display3: $font-weight-core-regular !default;
+$font-weight-base-display2: $font-weight-core-regular !default;
+$font-weight-base-display1: $font-weight-core-regular !default;
+$font-weight-base-headline: $font-weight-core-medium !default;
+$font-weight-base-title: $font-weight-core-medium !default;
+$font-weight-base-subhead: $font-weight-core-regular !default;
+$font-weight-base-body2: $font-weight-core-medium !default;
+$font-weight-base-body1: $font-weight-core-regular !default;
+$font-weight-base-caption: $font-weight-core-regular !default;
+
+$font-size-base-display3: $font-size-display-3 !default;
+$font-size-base-display2: $font-size-display-2 !default;
+$font-size-base-display1: $font-size-display-1 !default;
+$font-size-base-headline: $font-size-headline !default;
+$font-size-base-title: $font-size-title !default;
+$font-size-base-subhead: $font-size-subhead !default;
+$font-size-base-body2: $font-size-body-2 !default;
+$font-size-base-body1: $font-size-body-1 !default;
+$font-size-base-caption: $font-size-caption !default;
+
+$font-lineheight-base-display3: 84px !default;
+$font-lineheight-base-display2: 68px !default;
+$font-lineheight-base-display1: 54px !default;
+$font-lineheight-base-headline: 36px !default;
+$font-lineheight-base-title: 30px !default;
+$font-lineheight-base-subhead: 24px !default;
+$font-lineheight-base-body2: 20px !default;
+$font-lineheight-base-body1: 20px !default;
+$font-lineheight-base-caption: 18px !default;
+
+// ----------- 以下变量后期将弃用, 请勿使用 ----------- //
+
+$font-size-en-display3: 56px !default;
+$font-size-en-display2: 48px !default;
+$font-size-en-display1: 36px !default;
+$font-size-en-headline: 24px !default;
+$font-size-en-title: 20px !default;
+$font-size-en-subhead: 16px !default;
+$font-size-en-body2: 14px !default;
+$font-size-en-body1: 14px !default;
+$font-size-en-caption: 12px !default;
+
+$font-lineheight-en-display3: 84px !default;
+$font-lineheight-en-display2: 68px !default;
+$font-lineheight-en-display1: 54px !default;
+$font-lineheight-en-headline: 36px !default;
+$font-lineheight-en-title: 30px !default;
+$font-lineheight-en-subhead: 24px !default;
+$font-lineheight-en-body2: 20px !default;
+$font-lineheight-en-body1: 20px !default;
+$font-lineheight-en-caption: 18px !default;
+
+$font-weight-en-display3: $font-weight-core-regular !default;
+$font-weight-en-display2: $font-weight-core-regular !default;
+$font-weight-en-display1: $font-weight-core-regular !default;
+$font-weight-en-headline: $font-weight-core-medium !default;
+$font-weight-en-title: $font-weight-core-medium !default;
+$font-weight-en-subhead: $font-weight-core-regular !default;
+$font-weight-en-body2: $font-weight-core-medium !default;
+$font-weight-en-body1: $font-weight-core-regular !default;
+$font-weight-en-caption: $font-weight-core-regular !default;
+
+$font-size-zh-display3: 56px !default;
+$font-size-zh-display2: 48px !default;
+$font-size-zh-display1: 36px !default;
+$font-size-zh-headline: 24px !default;
+$font-size-zh-title: 20px !default;
+$font-size-zh-subhead: 16px !default;
+$font-size-zh-body2: 14px !default;
+$font-size-zh-body1: 14px !default;
+$font-size-zh-caption: 12px !default;
+
+$font-lineheight-zh-display3: 84px !default;
+$font-lineheight-zh-display2: 68px !default;
+$font-lineheight-zh-display1: 54px !default;
+$font-lineheight-zh-headline: 36px !default;
+$font-lineheight-zh-title: 30px !default;
+$font-lineheight-zh-subhead: 24px !default;
+$font-lineheight-zh-body2: 25px !default;
+$font-lineheight-zh-body1: 25px !default;
+$font-lineheight-zh-caption: 18px !default;
+
+$font-weight-zh-display3: $font-weight-core-regular !default;
+$font-weight-zh-display2: $font-weight-core-regular !default;
+$font-weight-zh-display1: $font-weight-core-regular !default;
+$font-weight-zh-headline: $font-weight-core-bold !default;
+$font-weight-zh-title: $font-weight-core-bold !default;
+$font-weight-zh-subhead: $font-weight-core-regular !default;
+$font-weight-zh-body2: $font-weight-core-bold !default;
+$font-weight-zh-body1: $font-weight-core-regular !default;
+$font-weight-zh-caption: $font-weight-core-regular !default;
+
+/* end file "./variables/_font.scss" */
+
+/* start file "./variables/_line.scss" */
+////
+/// @group line
+/// @module line: 线条
+/// @type String
+/// @category style
+////
+
+// Line
+// 根据 Alibaba Base DPL(BASE DPL)
+// 边框主要用于呈现元素内容区域，显示元素的操作区域；线主要用于管理和分隔列表和页面布局内的内容。以便让内容生成更好的视觉效果及空间感。
+
+// ************************** 公共变量, 供开发者和设计师引用 *********************** //
+
+/// line-1
+/// @semantic 细
+/// @export width
+/// @type Length
+$line-1: 1px !default;
+
+/// line-2
+/// @semantic 常规
+/// @export width
+/// @type Length
+$line-2: 2px !default;
+
+/// line-3
+/// @semantic 粗
+/// @export width
+/// @type Length
+$line-3: 4px !default;
+
+/// line-solid
+/// @export style
+/// @unconfigurable
+$line-solid: solid !default;
+
+/// line-dashed
+/// @export style
+/// @unconfigurable
+$line-dashed: dashed !default;
+
+/// line-dotted
+/// @export style
+/// @unconfigurable
+$line-dotted: dotted !default;
+
+// Patch
+// ----------- 线条 patch ----------- //
+
+$line-1-width: $line-1 !default;
+$line-2-width: $line-2 !default;
+$line-3-width: $line-3 !default;
+
+// ----------- 以下变量后期将弃用, 请勿使用 ----------- //
+
+$line1: $line-1-width $line-solid;
+$line1-dashed: $line-1-width $line-dashed;
+$line1-dotted: $line-1-width $line-dotted;
+
+$line2: $line-2-width $line-solid;
+$line2-dashed: $line-2-width $line-dashed;
+$line2-dotted: $line-2-width $line-dotted;
+
+$line3: $line-3-width $line-solid;
+$line3-dashed: $line-3-width $line-dashed;
+$line3-dotted: $line-3-width $line-dotted;
+
+/* end file "./variables/_line.scss" */
+
+/* start file "./variables/_shadow.scss" */
+/* sass file "./_color.scss" already loaded */
+/* sass file "../util/_functions.scss" already loaded */
+
+////
+/// @group shadow
+/// @module shadow: 阴影
+/// @category style
+////
+
+// Elevation & Shadow
+// 根据 Alibaba Base DPL(BASE DPL)设计规范实现
+// 在现实生活中，不同对象可以被堆积或粘贴起来，但是不能彼此交叉。对象自身塑造了自己的阴影并返回自己的光影。
+// 规则: x == y, 所有方向阴影的 blur 值, 透明度, 颜色都应该相同
+// -------------------------------
+
+// 变量: x, y, color, opacity, elevation
+// 常量: base(45度), top, right, bottom, left
+
+// ---------------- 阴影方向 ---------------- //
+
+/// Sides Base
+/// @type String
+$shadow-sides-base: "base" !default;
+
+/// Sides Up
+/// @type String
+$shadow-sides-up: "up" !default;
+
+/// Sides Right
+/// @type String
+$shadow-sides-right: "right" !default;
+
+/// Sides Down
+/// @type String
+$shadow-sides-down: "down" !default;
+
+/// Sides Left
+/// @type String
+$shadow-sides-left: "left" !default;
+
+// ---------------- 阴影距离 ----------------- //
+
+/// Distance 1
+/// @type Number
+$shadow-distance-sd1: 1;
+
+/// Distance 2
+/// @type Number
+$shadow-distance-sd2: 2;
+
+/// Distance 3
+/// @type Number
+$shadow-distance-sd3: 3;
+
+/// Distance 4
+/// @type Number
+$shadow-distance-sd4: 4;
+
+/// Distance 5
+/// @type Number
+$shadow-distance-sd5: 5;
+
+// ---------------- 阴影透明度 ----------------- //
+
+/// Opacity 1
+/// @type Number
+$shadow-opacity-sd1: 0.32 !default;
+
+/// Opacity 2
+/// @type Number
+$shadow-opacity-sd2: 0.32 !default;
+
+/// Opacity 3
+/// @type Number
+$shadow-opacity-sd3: 0.32 !default;
+
+/// Opacity 4
+/// @type Number
+$shadow-opacity-sd4: 0.32 !default;
+
+/// Opacity 4
+/// @type Number
+$shadow-opacity-sd5: 0.32 !default;
+
+// ---------------- 阴影颜色 ----------------- //
+
+/// Color 1
+/// @type Color
+$shadow-color-sd1: $color-black !default;
+
+/// Color 2
+/// @type Color
+$shadow-color-sd2: $color-black !default;
+
+/// Color 3
+/// @type Color
+$shadow-color-sd3: $color-black !default;
+
+/// Color 4
+/// @type Color
+$shadow-color-sd4: $color-black !default;
+
+/// Color 5
+/// @type Color
+$shadow-color-sd5: $color-black !default;
+
+// 带透明度的颜色变量
+
+$shadow-color-opacity-sd1: rgba($shadow-color-sd1, $shadow-opacity-sd1) !default;
+$shadow-color-opacity-sd2: rgba($shadow-color-sd2, $shadow-opacity-sd2) !default;
+$shadow-color-opacity-sd3: rgba($shadow-color-sd3, $shadow-opacity-sd3) !default;
+$shadow-color-opacity-sd4: rgba($shadow-color-sd4, $shadow-opacity-sd4) !default;
+$shadow-color-opacity-sd5: rgba($shadow-color-sd5, $shadow-opacity-sd5) !default;
+
+// ------------------ 阴影羽化值 ---------------- //
+
+/// Blur 1
+/// @type Number
+$shadow-blur-sd1: 3 !default;
+
+/// Blur 2
+/// @type Number
+$shadow-blur-sd2: 3 !default;
+
+/// Blur 3
+/// @type Number
+$shadow-blur-sd3: 5 !default;
+
+/// Blur 4
+/// @type Number
+$shadow-blur-sd4: 7 !default;
+
+/// Blur 5
+/// @type Number
+$shadow-blur-sd5: 10 !default;
+
+// ------------------ 阴影扩散值 ---------------- //
+
+/// Spread 1
+/// @type Number
+$shadow-spread-sd1: 0 !default;
+
+/// Spread 2
+/// @type Number
+$shadow-spread-sd2: 0 !default;
+
+/// Spread 3
+/// @type Number
+$shadow-spread-sd3: 0 !default;
+
+/// Spread 4
+/// @type Number
+$shadow-spread-sd4: 0 !default;
+
+/// Spread 5
+/// @type Number
+$shadow-spread-sd5: 0 !default;
+
+// ------------------ Shadow Values ---------------- //
+
+/// shadow-0
+/// @export
+/// @unconfigurable
+$shadow-0: none;
+
+/// shadow-1
+/// @semantic 阴影1-右下
+/// @export
+/// @unconfigurable
+$shadow-1: shadow-maker($shadow-sides-base, $shadow-blur-sd1, $shadow-color-opacity-sd1, $shadow-distance-sd1, $shadow-distance-sd1, $shadow-spread-sd1);
+
+/// shadow-1-up
+/// @semantic 阴影1-上
+/// @export
+/// @unconfigurable
+$shadow-1-up: shadow-maker($shadow-sides-up, $shadow-blur-sd1, $shadow-color-opacity-sd1, $shadow-distance-sd1, $shadow-distance-sd1, $shadow-spread-sd1);
+
+/// shadow-1-right
+/// @semantic 阴影1-右
+/// @export
+/// @unconfigurable
+$shadow-1-right: shadow-maker($shadow-sides-right, $shadow-blur-sd1, $shadow-color-opacity-sd1, $shadow-distance-sd1, $shadow-distance-sd1, $shadow-spread-sd1);
+
+/// shadow-1-down
+/// @semantic 阴影1-下
+/// @export
+/// @unconfigurable
+$shadow-1-down: shadow-maker($shadow-sides-down, $shadow-blur-sd1, $shadow-color-opacity-sd1, $shadow-distance-sd1, $shadow-distance-sd1, $shadow-spread-sd1);
+
+/// shadow-1-left
+/// @semantic 阴影1-左
+/// @export
+/// @unconfigurable
+$shadow-1-left: shadow-maker($shadow-sides-left, $shadow-blur-sd1, $shadow-color-opacity-sd1, $shadow-distance-sd1, $shadow-distance-sd1, $shadow-spread-sd1);
+
+/// shadow-2
+/// @semantic 阴影2-右下
+/// @export
+/// @unconfigurable
+$shadow-2: shadow-maker($shadow-sides-base, $shadow-blur-sd2, $shadow-color-opacity-sd2, $shadow-distance-sd2, $shadow-distance-sd2, $shadow-spread-sd2);
+
+/// shadow-2-up
+/// @semantic 阴影2-上
+/// @export
+/// @unconfigurable
+$shadow-2-up: shadow-maker($shadow-sides-up, $shadow-blur-sd2, $shadow-color-opacity-sd2, $shadow-distance-sd2, $shadow-distance-sd2, $shadow-spread-sd2);
+
+/// shadow-2-right
+/// @semantic 阴影2-右
+/// @export
+/// @unconfigurable
+$shadow-2-right: shadow-maker($shadow-sides-right, $shadow-blur-sd2, $shadow-color-opacity-sd2, $shadow-distance-sd2, $shadow-distance-sd2, $shadow-spread-sd2);
+
+/// shadow-2-down
+/// @semantic 阴影2-下
+/// @export
+/// @unconfigurable
+$shadow-2-down: shadow-maker($shadow-sides-down, $shadow-blur-sd2, $shadow-color-opacity-sd2, $shadow-distance-sd2, $shadow-distance-sd2, $shadow-spread-sd2);
+
+/// shadow-2-left
+/// @semantic 阴影2-左
+/// @export
+/// @unconfigurable
+$shadow-2-left: shadow-maker($shadow-sides-left, $shadow-blur-sd2, $shadow-color-opacity-sd2, $shadow-distance-sd2, $shadow-distance-sd2, $shadow-spread-sd2);
+
+/// shadow-3
+/// @semantic 阴影3-右下
+/// @export
+/// @unconfigurable
+$shadow-3: shadow-maker($shadow-sides-base, $shadow-blur-sd3, $shadow-color-opacity-sd3, $shadow-distance-sd3, $shadow-distance-sd3, $shadow-spread-sd3);
+
+/// shadow-3-up
+/// @semantic 阴影3-上
+/// @export
+/// @unconfigurable
+$shadow-3-up: shadow-maker($shadow-sides-up, $shadow-blur-sd3, $shadow-color-opacity-sd3, $shadow-distance-sd3, $shadow-distance-sd3, $shadow-spread-sd3);
+
+/// shadow-3-right
+/// @semantic 阴影3-右
+/// @export
+/// @unconfigurable
+$shadow-3-right: shadow-maker($shadow-sides-right, $shadow-blur-sd3, $shadow-color-opacity-sd3, $shadow-distance-sd3, $shadow-distance-sd3, $shadow-spread-sd3);
+
+/// shadow-3-down
+/// @semantic 阴影3-下
+/// @export
+/// @unconfigurable
+$shadow-3-down: shadow-maker($shadow-sides-down, $shadow-blur-sd3, $shadow-color-opacity-sd3, $shadow-distance-sd3, $shadow-distance-sd3, $shadow-spread-sd3);
+
+/// shadow-3-left
+/// @semantic 阴影3-左
+/// @export
+/// @unconfigurable
+$shadow-3-left: shadow-maker($shadow-sides-left, $shadow-blur-sd3, $shadow-color-opacity-sd3, $shadow-distance-sd3, $shadow-distance-sd3, $shadow-spread-sd3);
+
+/// shadow-4
+/// @semantic 阴影4-右下
+/// @export
+/// @unconfigurable
+$shadow-4: shadow-maker($shadow-sides-base, $shadow-blur-sd4, $shadow-color-opacity-sd4, $shadow-distance-sd4, $shadow-distance-sd4, $shadow-spread-sd4);
+
+/// shadow-4-up
+/// @semantic 阴影4-上
+/// @export
+/// @unconfigurable
+$shadow-4-up: shadow-maker($shadow-sides-up, $shadow-blur-sd4, $shadow-color-opacity-sd4, $shadow-distance-sd4, $shadow-distance-sd4, $shadow-spread-sd4);
+
+/// shadow-4-right
+/// @semantic 阴影4-右
+/// @export
+/// @unconfigurable
+$shadow-4-right: shadow-maker($shadow-sides-right, $shadow-blur-sd4, $shadow-color-opacity-sd4, $shadow-distance-sd4, $shadow-distance-sd4, $shadow-spread-sd4);
+
+/// shadow-4-down
+/// @semantic 阴影4-下
+/// @export
+/// @unconfigurable
+$shadow-4-down: shadow-maker($shadow-sides-down, $shadow-blur-sd4, $shadow-color-opacity-sd4, $shadow-distance-sd4, $shadow-distance-sd4, $shadow-spread-sd4);
+
+/// shadow-4-left
+/// @semantic 阴影4-左
+/// @export
+/// @unconfigurable
+$shadow-4-left: shadow-maker($shadow-sides-left, $shadow-blur-sd4, $shadow-color-opacity-sd4, $shadow-distance-sd4, $shadow-distance-sd4, $shadow-spread-sd4);
+
+/// shadow-5
+/// @semantic 阴影5-右下
+/// @export
+/// @unconfigurable
+$shadow-5: shadow-maker($shadow-sides-base, $shadow-blur-sd5, $shadow-color-opacity-sd5, $shadow-distance-sd5, $shadow-distance-sd5, $shadow-spread-sd5);
+
+/// shadow-5-up
+/// @semantic 阴影5-上
+/// @export
+/// @unconfigurable
+$shadow-5-up: shadow-maker($shadow-sides-up, $shadow-blur-sd5, $shadow-color-opacity-sd5, $shadow-distance-sd5, $shadow-distance-sd5, $shadow-spread-sd5);
+
+/// shadow-5-right
+/// @semantic 阴影5-右
+/// @export
+/// @unconfigurable
+$shadow-5-right: shadow-maker($shadow-sides-right, $shadow-blur-sd5, $shadow-color-opacity-sd5, $shadow-distance-sd5, $shadow-distance-sd5, $shadow-spread-sd5);
+
+/// shadow-5-down
+/// @semantic 阴影5-下
+/// @export
+/// @unconfigurable
+$shadow-5-down: shadow-maker($shadow-sides-down, $shadow-blur-sd5, $shadow-color-opacity-sd5, $shadow-distance-sd5, $shadow-distance-sd5, $shadow-spread-sd5);
+
+/// shadow-5-left
+/// @semantic 阴影5-左
+/// @export
+/// @unconfigurable
+$shadow-5-left: shadow-maker($shadow-sides-left, $shadow-blur-sd5, $shadow-color-opacity-sd5, $shadow-distance-sd5, $shadow-distance-sd5, $shadow-spread-sd5);
+
+// Patch
+// ----------- 阴影 patch ----------- //
+
+$shadow-x: 1 !default; // x 方向常规值
+$shadow-y: $shadow-x !default; // y 方向常规值
+
+$shadow-elevation-sd1: $shadow-blur-sd1 !default;
+$shadow-elevation-sd2: $shadow-blur-sd2 !default;
+$shadow-elevation-sd3: $shadow-blur-sd3 !default;
+$shadow-elevation-sd4: $shadow-blur-sd4 !default;
+$shadow-elevation-sd5: $shadow-blur-sd5 !default;
+
+$shadow-sd0: $shadow-0;
+$shadow-sd1: $shadow-1;
+$shadow-sd1-up: $shadow-1-up;
+$shadow-sd1-right: $shadow-1-right;
+$shadow-sd1-down: $shadow-1-down;
+$shadow-sd1-left: $shadow-1-left;
+$shadow-sd2: $shadow-2;
+$shadow-sd2-up: $shadow-2-up;
+$shadow-sd2-right: $shadow-2-right;
+$shadow-sd2-down: $shadow-2-down;
+$shadow-sd2-left: $shadow-2-left;
+$shadow-sd3: $shadow-3;
+$shadow-sd3-up: $shadow-3-up;
+$shadow-sd3-right: $shadow-3-right;
+$shadow-sd3-down: $shadow-3-down;
+$shadow-sd3-left: $shadow-3-left;
+$shadow-sd4: $shadow-4;
+$shadow-sd4-up: $shadow-4-up;
+$shadow-sd4-right: $shadow-4-right;
+$shadow-sd4-down: $shadow-4-down;
+$shadow-sd4-left: $shadow-4-left;
+$shadow-sd5: $shadow-5;
+$shadow-sd5-up: $shadow-5-up;
+$shadow-sd5-right: $shadow-5-right;
+$shadow-sd5-down: $shadow-5-down;
+$shadow-sd5-left: $shadow-5-left;
+
+/* end file "./variables/_shadow.scss" */
+
+// Icon
+
+/* start file "./variables/_icon.scss" */
+////
+/// @group icon
+/// @module icon: 图标
+/// @type String
+/// @category style
+////
+
+// Icon
+// 根据 Alibaba Base DPL 设计实现
+
+/// icon font path 字体路径
+$icon-font-path: "//at.alicdn.com/t/font_t6jzs3l3nwtmaemi" !default;
+
+/// icon font name 自定义的icon font 名称
+$icon-font-name: "icon" !default;
+
+$icon-font-family: #{to-upper-case(str-slice($css-prefix, 1, 1))}#{str-slice($css-prefix, 2, str-length($css-prefix) - 1)}Icon !default;
+
+$icon-prefix: #{$css-prefix}icon !default;
+
+// ------------------- 图标尺寸 ---------------------- //
+
+/// icon-xxs
+/// @export
+$icon-xxs: $s-2 !default;
+
+/// icon-xs
+/// @export
+$icon-xs: $s-3 !default;
+
+/// icon-s
+/// @export
+$icon-s: $s-4 !default;
+
+/// icon-m
+/// @export
+$icon-m: $s-5 !default;
+
+/// icon-l
+/// @export
+$icon-l: $s-6 !default;
+
+/// icon-xl
+/// @export
+$icon-xl: $s-8 !default;
+
+/// icon-xxl
+/// @export
+$icon-xxl: $s-12 !default;
+
+/// icon-xxxl
+/// @export
+$icon-xxxl: $s-16 !default;
+
+// ------------------- 图标 unicode 值 ---------------------- //
+
+//MEXT_ICON_START
+
+$icon-content-all: "" !default;
+$icon-content-cart: "" !default;
+$icon-content-comments: "" !default;
+$icon-content-cry: "" !default;
+$icon-content-email: "" !default;
+$icon-content-favorite: "" !default;
+$icon-content-folder: "" !default;
+$icon-content-form: "" !default;
+$icon-content-help: "" !default;
+$icon-content-refresh: "" !default;
+$icon-content-set: "" !default;
+$icon-content-training: "" !default;
+$icon-content-account: "" !default;
+$icon-content-atm: "" !default;
+$icon-content-clock: "" !default;
+$icon-content-attachment: "" !default;
+$icon-content-3column: "" !default;
+$icon-content-4column: "" !default;
+$icon-content-discount: "" !default;
+$icon-content-service: "" !default;
+$icon-content-print: "" !default;
+$icon-content-box: "" !default;
+$icon-content-process: "" !default;
+$icon-content-bags: "" !default;
+$icon-content-electronics: "" !default;
+$icon-content-gifts: "" !default;
+$icon-content-lights: "" !default;
+$icon-content-auto: "" !default;
+$icon-content-browse: "" !default;
+$icon-content-atm-away: "" !default;
+$icon-content-scanning: "" !default;
+$icon-content-compare: "" !default;
+$icon-content-filter: "" !default;
+$icon-content-pin: "" !default;
+$icon-content-history: "" !default;
+$icon-content-similar-product: "" !default;
+$icon-content-link: "" !default;
+$icon-content-cut: "" !default;
+$icon-content-table: "" !default;
+$icon-content-nav-list: "" !default;
+$icon-content-image-text: "" !default;
+$icon-content-text: "" !default;
+$icon-content-move: "" !default;
+$icon-content-subtract: "" !default;
+$icon-content-dollar: "" !default;
+$icon-content-office: "" !default;
+$icon-content-operation: "" !default;
+$icon-content-download: "" !default;
+$icon-content-map: "" !default;
+$icon-content-bad: "" !default;
+$icon-content-good: "" !default;
+$icon-content-skip: "" !default;
+$icon-content-play: "" !default;
+$icon-content-stop: "" !default;
+$icon-content-compass: "" !default;
+$icon-content-security: "" !default;
+$icon-content-share: "" !default;
+$icon-content-store: "" !default;
+$icon-content-phone: "" !default;
+$icon-content-ellipsis: "" !default;
+$icon-content-email-filling: "" !default;
+$icon-content-favorites-filling: "" !default;
+$icon-content-account-filling: "" !default;
+$icon-content-credit-level: "" !default;
+$icon-content-credit-level-filling: "" !default;
+$icon-content-mobile-phone: "" !default;
+$icon-content-smile: "" !default;
+$icon-content-personal-center: "" !default;
+$icon-content-arrow-up-filling: "" !default;
+$icon-content-arrow-right: "" !default;
+$icon-content-arrow-left: "" !default;
+$icon-content-arrow-down: "" !default;
+$icon-content-arrow-up: "" !default;
+$icon-content-add: "" !default;
+$icon-content-minus: "" !default;
+$icon-content-delete-filling: "" !default;
+$icon-content-edit: "" !default;
+$icon-content-error: "" !default;
+$icon-content-select: "" !default;
+$icon-content-ashbin: "" !default;
+$icon-content-calendar: "" !default;
+$icon-content-time: "" !default;
+$icon-content-success: "" !default;
+$icon-content-warning: "" !default;
+$icon-content-search: "" !default;
+$icon-content-display: "" !default;
+$icon-content-category: "" !default;
+$icon-content-prompt: "" !default;
+$icon-content-arrow-down-filling: "" !default;
+$icon-content-sorting: "" !default;
+$icon-content-ascending: "" !default;
+$icon-content-descending: "" !default;
+$icon-content-success-filling: "" !default;
+$icon-content-picture: "" !default;
+$icon-content-close: "" !default;
+$icon-content-semi-select: "" !default;
+$icon-content-tag-subscript: "" !default;
+$icon-content-survey: "" !default;
+$icon-content-loading: "" !default;
+$icon-content-arrow-double-left: "" !default;
+$icon-content-arrow-double-right: "" !default;
+
+/* end file "./variables/_icon.scss" */

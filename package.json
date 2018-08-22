@@ -1,0 +1,41 @@
+{
+  "name": "@no-repeat/sass-mapper",
+  "version": "0.0.1",
+  "description": "sass mapper",
+  "keywords": [
+    "sass",
+    "mapper",
+    "fusion"
+  ],
+  "main": "index",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/no-repeat/sass-mapper.git"
+  },
+  "author": "no-repeat <chenpeng.mini@gmail.com>",
+  "scripts": {
+    "test": "nyc mocha test/*.test.js && nyc report --reporter=text-lcov > coverage.lcov && codecov"
+  },
+  "engines": {
+    "node": "8"
+  },
+  "devDependencies": {
+    "chai": "^4.x",
+    "codecov": "^3.x",
+    "eslint": "^5.x",
+    "eslint-config-egg": "^7.x",
+    "istanbul": "^0.x",
+    "mocha": "^5.x",
+    "nyc": "^12.x"
+  },
+  "dependencies": {
+    "cli-source-preview": "^1.x",
+    "css": "^2.x",
+    "postcss": "^7.x",
+    "postcss-scss": "^2.x",
+    "resolve": "^1.1.7",
+    "rimraf": "^2.5.2",
+    "source-map": "^0.x"
+  }
+}
