@@ -1,0 +1,65 @@
+{
+  "selectors": [
+    {
+      "selector": ".next-btn",
+      "decls": {
+        "border-color": [
+          27
+        ]
+      }
+    },
+    {
+      "selector": ".next-btn.ghost",
+      "decls": {
+        "color": [
+          33
+        ],
+        "background-color": [
+          34
+        ]
+      }
+    },
+    {
+      "selector": ".next-btn.ghost:hover",
+      "decls": {
+        "color": [
+          37
+        ]
+      }
+    },
+    {
+      "selector": ".next-btn.outline",
+      "decls": {
+        "border": [
+          42
+        ],
+        "background-color": [
+          43
+        ]
+      }
+    }
+  ],
+  "vars": {
+    "22": [
+      "$btn-prefix"
+    ],
+    "27": [
+      "$btn-color"
+    ],
+    "33": [
+      "$btn-ghost-color"
+    ],
+    "34": [
+      "$btn-ghost-bg"
+    ],
+    "37": [
+      "$btn-ghost-color"
+    ],
+    "42": [
+      "$btn-color"
+    ],
+    "43": [
+      "$btn-bg"
+    ]
+  }
+}

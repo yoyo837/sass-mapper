@@ -1,6 +1,6 @@
 {
   "name": "@no-repeat/sass-mapper",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "sass mapper",
   "keywords": [
     "sass",
@@ -15,7 +15,8 @@
   },
   "author": "no-repeat <chenpeng.mini@gmail.com>",
   "scripts": {
-    "test": "nyc mocha test/*.test.js && nyc report --reporter=text-lcov > coverage.lcov && codecov"
+    "test": "nyc mocha test/*.test.js && nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "test-local": "mocha test/*.test.js"
   },
   "engines": {
     "node": "8"

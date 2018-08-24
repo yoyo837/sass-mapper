@@ -6,46 +6,39 @@ const preview = require('cli-source-preview');
 const postcss = require('postcss');
 const syntax = require('postcss-scss');
 
-const postcssMixin = require('./lib/postcss-mixin');
+const postcssSassMixin = require('./lib/postcss-sass-mixin');
 const merge = require('./lib/merge');
 const compile = require('./lib/compile');
 const getCssMap = require('./lib/css-map');
 const getVarMap = require('./lib/var-map');
 const getSassMap = require('./lib/sass-map');
 
+/**
+ * 编译mixin
+ *
+ * @param {String} scss
+ * @return {Object} Pormise对象
+ */
 function compileMixin(scss) {
-  return postcss([postcssMixin])
-    .process(scss, { syntax })
+  return postcss([postcssSassMixin])
+    .process(scss, {
+      syntax,
+      from: undefined,
+      to: undefined,
+    })
     .then(result => {
       return result.css;
     });
 }
 
-function debug(contents) {
-  if (!process.env.SASS_DEBUG) {
-    return;
-  }
-
-  const debugDir = path.join(process.cwd(), '.sass-debug');
-  try {
-    fs.mkdirSync(debugDir);
-  } catch (err) {
-    // empty
-  }
-
-  for (const file in contents) {
-    let data = contents[file];
-    if (typeof data !== 'string') {
-      data = JSON.stringify(data, null, 2);
-    }
-
-    fs.writeFileSync(path.join(debugDir, file), data);
-  }
-
-  console.log(' > 调试信息: %s', debugDir);
-}
-
-async function sassMapper (entry, sources, varPrefix) {
+/**
+ * 得到 sass 与 css 的变量映射关系
+ * @param {String} entry
+ * @param {Object} sources
+ * @param {String} varPrefix
+ * @return {Object}
+ */
+async function sassMapper(entry, sources, varPrefix) {
   if (typeof sources !== 'object') {
     varPrefix = sources;
     sources = null;
@@ -61,6 +54,8 @@ async function sassMapper (entry, sources, varPrefix) {
   try {
     noMixinScss = await compileMixin(singleScss);
   } catch (err) {
+    console.log(err);
+
     if (err.line) {
       err.message += '\n' + preview(singleScss, err.line);
     }
@@ -96,15 +91,17 @@ async function sassMapper (entry, sources, varPrefix) {
 
   const scssCssMap = getSassMap(noMixinScss, compiled.css, cssMap, varMap);
 
-  // output debug
-  debug({
-    'origin.scss': singleScss,
-    'no-mixin.scss': noMixinScss,
-    'compiled.css': compiled.css,
-    'css-map.json': cssMap,
-    'var-map.json': varMap,
-    'sass-css-map.json': scssCssMap,
-  });
+  // 输出调试信息
+  /**
+   * {
+   * 'origin.scss': singleScss,
+   * 'no-mixin.scss': noMixinScss,
+   * 'compiled.css': compiled.css,
+   * 'css-map.json': cssMap,
+   * 'var-map.json': varMap,
+   * 'sass-css-map.json': scssCssMap,
+   *  }
+   */
 
   return scssCssMap;
 }

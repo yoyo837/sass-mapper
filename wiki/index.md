@@ -4,86 +4,27 @@
 npm i @no-repeat/sass-mapper -g
 ```
 
-## 依赖
-
 本模块依赖sass，安装sass请参考 [sass官方安装文档](https://sass-lang.com/install)
-
-## 使用
-
-1. 启动开发服务:
-
-```
-$ cd /path/to/component
-$ tnpm run dev
-```
-
-2. 执行 demo 服务
-
-```
-$ cd /path/to/component
-$ sass-demo
-```
-
-3. 打开浏览器, 访问 'http://127.0.0.1:2223'
 
 ## API
 
-在 Node 端, 可以调用 `generate` 函数来生成变量映射表:
+在 Node 端, 可以调用 `mapper` 函数来生成变量映射表:
 
 ```
-const generate = require('@no-repeat/sass-mapper')
+const mapper = require('@no-repeat/sass-mapper')
 
 // 入口文件在文件系统中
 //
 // 参数1: 入口 SCSS 文件
 // 参数2: 组件变量名的前缀, 如 $btn, $badge, etc.
-generate('/path/to/entry/scss', '$var-prefix')
+await mapper('/path/to/entry/scss', '$var-prefix')
 
 // 入口文件在内存中
 //
 // 参数1: 入口 SCSS 索引
 // 参数2: 文件映射表
 // 参数2: 组件变量名的前缀, 如 $btn, $badge, etc.
-generate('index.scss', sources, '$var-prefix')
-```
-
-## 调试
-
-### 使用 `sass-mapper`
-
-此命令能够完整输出所有的 CSS 规则与对应的变量之间的关系.
-
-用法:
-
-```
-$ sass-mapper <sass-entry> <var-prefix>
-```
-
-其中:
-
-- sass-entry 为入口的 .scss 文件
-- var-prefix 为当前组件的变量前缀
-
-示例:
-
-```
-$ sass-mapper ./lib/index.scss \$btn
-```
-
-### 使用 `SASS_DEBUG`
-
-如果最终生成的变量映射与预期不符, 可以输出调试信息, 以检查可能有问题的环节.
-
-方法:
-
-```
-$ SASS_DEBUG=true sass-mapper index.scss \$btn
-```
-
-或
-
-```
-$ SASS_DEBUG=true sass-demo
+await mapper('index.scss', sources, '$var-prefix')
 ```
 
 ## 原理
