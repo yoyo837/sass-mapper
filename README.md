@@ -23,10 +23,13 @@ $ npm install @no-repeat/sass-mapper --save
 ```
 
 Node.js >= 8.0.0 required.
+Sass compiled with dart2js 2.0.0 required.
 
 ## Getting Started
 
 ```js
+const sassMapper = require('@no-repeat/sass-mapper');
+
 async function getSassVarMap(merged) {
   const sources = {
     'core.scss': fs.readFileSync(path.join(__dirname, 'assets/core.scss'), 'utf8'),
