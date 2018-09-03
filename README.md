@@ -19,7 +19,7 @@ sass变量映射器
 ## Installation
 
 ```bash
-$ npm install @no-repeat/mapper --save
+$ npm install @no-repeat/sass-mapper --save
 ```
 
 Node.js >= 8.0.0 required.
