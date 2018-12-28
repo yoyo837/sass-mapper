@@ -19,7 +19,7 @@
     "test-local": "mocha test/*.test.js"
   },
   "engines": {
-    "node": "8"
+    "node": ">=8"
   },
   "devDependencies": {
     "chai": "^4.x",
